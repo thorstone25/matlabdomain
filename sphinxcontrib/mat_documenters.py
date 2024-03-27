@@ -215,7 +215,7 @@ class MatlabDocumenter(PyDocumenter):
 
                 if is_see_also_line and entries_str:
                     # split on ,
-                    entries = re.split(r"\s*,\s*", entries_str)
+                    entries = re.split(r"\s*,\s*|(?<=\w)\s+(?=\w)", entries_str)
                     for k in range(len(entries)):
                         if entries[k].endswith("`"):
                             continue
