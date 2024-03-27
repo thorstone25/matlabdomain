@@ -46,6 +46,7 @@ MATLAB_KEYWORD_REQUIRES_END = list(
 
 # From:
 #  - http://www.mathworks.com/help/matlab/matlab_oop/class-attributes.html
+#  - https://www.mathworks.com/help/matlab/ref/matlab.unittest.testcase-class.html
 MATLAB_CLASS_ATTRIBUTE_TYPES = {
     "Abstract": bool,
     "AllowedSubclasses": list,
@@ -54,6 +55,8 @@ MATLAB_CLASS_ATTRIBUTE_TYPES = {
     "Hidden": bool,
     "InferiorClasses": list,
     "Sealed": bool,
+    "SharedTestFixtures": list,
+    "TestTags": list,
 }
 
 # From:
@@ -96,6 +99,8 @@ MATLAB_METHOD_ATTRIBUTE_TYPES = {
     "TestClassTeardown": bool,
     "TestMethodSetup": bool,
     "TestMethodTeardown": bool,
+    "TestParameterDefinition": bool,
+    "TestTags": list,
 }
 
 
@@ -1541,16 +1546,37 @@ class MatClass(MatMixin, MatObject):
                             if attr_val:
                                 attr_dict[attr_name].append(attr_val)
                         idx += 1
+                    # string array
+                    elif self._tk_eq(idx, (Token.Punctuation, "[")):
+                        idx += 1
+                        # closing bracket terminates string array
+                        attr_dict[attr_name] = []
+                        while self._tk_ne(idx, (Token.Punctuation, "]")):
+                            idx += self._blanks(idx)  # skip blanks
+                            # concatenate attr value string
+                            attr_val = ""
+                            # TODO: use _blanks or _indent instead
+                            while self._tk_ne(
+                                idx, (Token.Punctuation, ",")
+                            ) and self._tk_ne(idx, (Token.Punctuation, "]")):
+                                attr_val += self.tokens[idx][1].strip('"')
+                                idx += 1
+                            if self._tk_eq(idx, (Token.Punctuation, ",")):
+                                idx += 1
+                            if attr_val:
+                                attr_dict[attr_name].append(attr_val)
+                        idx += 1
                     elif (
                         self.tokens[idx][0] == Token.Literal.String
                         and self.tokens[idx + 1][0] == Token.Literal.String
                     ):
-                        # String
+                        # String (char array or double quotes)
                         attr_val += self.tokens[idx][1] + self.tokens[idx + 1][1]
                         idx += 2
                         attr_dict[attr_name] = attr_val.strip("'")
 
                     idx += self._blanks(idx)  # skip blanks
+                    
                     # continue to next attribute separated by commas
                     if self._tk_eq(idx, (Token.Punctuation, ",")):
                         idx += 1
