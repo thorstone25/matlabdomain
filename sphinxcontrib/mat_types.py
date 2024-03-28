@@ -17,6 +17,7 @@ from pygments.token import Token
 from zipfile import ZipFile
 import xml.etree.ElementTree as ET
 import sphinxcontrib.mat_parser as mat_parser
+from case_insensitive_dict import CaseInsensitiveDict
 
 logger = sphinx.util.logging.getLogger("matlab-domain")
 
@@ -109,13 +110,13 @@ MATLAB_METHOD_ATTRIBUTE_TYPES = {
 # Further, "short names" are added. Example:
 #   Given a dotted path of: target.+package.ClassBar
 #   Will result in a short name of: package.ClassBar
-entities_table = {}
+entities_table = CaseInsensitiveDict()
 
 # Dictionary containing a map of names WITHOUT '+' in package names to
 # the corresponding names WITH '+' in the package name. This is only
 # used if "matlab_auto_link" is on AND "matlab_keep_package_prefix"
 # is True AND a docstring with "see also" is encountered.
-entities_name_map = {}
+entities_name_map = CaseInsensitiveDict()
 
 
 def shortest_name(dotted_path):

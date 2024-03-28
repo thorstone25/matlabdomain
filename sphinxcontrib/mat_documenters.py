@@ -226,34 +226,39 @@ class MatlabDocumenter(PyDocumenter):
                             and entries[k] in entities_table
                         ):
                             o = entities_table[entries[k]]
+                            key = entities_table.getkey(entries[k])
                         elif (
                             not self.env.config.matlab_keep_package_prefix
                             and entries[k] in entities_name_map
                         ):
                             o = entities_table[entities_name_map[entries[k]]]
+                            key = entities_table.getkey(entities_name_map[entries[k]])
                         else:
                             o = None
+                            key = None
                         if o:
                             if isinstance(o, dict):
                                 o = o["class"]
                             role = o.ref_role()
                             if role in ["class", "func"]:
-                                entries[k] = f":{role}:`{entries[k]}`"
+                                entries[k] = f":{role}:`{key}`"
                                 continue
 
                         # if we have an associated class, search properties and methods
                         cls = self.class_object()
                         if cls:
                             name = entries[k].rstrip("()")
-                            if name in cls.methods:
+                            mth = [key for key in cls.methods    if name.casefold() == key.casefold()]
+                            prp = [key for key in cls.properties if name.casefold() == key.casefold()]
+                            if mth:
                                 entries[
                                     k
-                                ] = f":meth:`{name}() <{cls.fullname(self.env)}.{name}>`"
+                                ] = f":meth:`{mth[0]}() <{cls.fullname(self.env)}.{mth[0]}>`"
                                 continue
-                            elif name in cls.properties:
+                            elif prp:
                                 entries[
                                     k
-                                ] = f":attr:`{name} <{cls.fullname(self.env)}.{name}>`"
+                                ] = f":attr:`{prp[0]} <{cls.fullname(self.env)}.{prp[0]}>`"
                                 continue
 
                         # see if it is a fully qualified property or method name we recognize
@@ -266,22 +271,27 @@ class MatlabDocumenter(PyDocumenter):
                                 and m1 in entities_table
                             ):
                                 cls = entities_table[entries[k]]
+                                key = entities_table.getkey(entries[k])
                             elif (
                                 not self.env.config.matlab_keep_package_prefix
                                 and m1 in entities_name_map
                             ):
                                 cls = entities_table[entities_name_map[m1]]
+                                key = entities_table.getkey(entities_name_map[m1])
                             else:
                                 cls = None
+                                key = None
                             if isinstance(cls, dict):
                                 cls = cls["class"]
                             if cls and cls.ref_role() == "class":
                                 name = m2.rstrip("()")
-                                if name in cls.methods:
-                                    entries[k] = f":meth:`{entries[k]}`"
+                                mth = [key for key in cls.methods    if name.casefold() == key.casefold()]
+                                prp = [key for key in cls.properties if name.casefold() == key.casefold()]
+                                if mth:
+                                    entries[k] = f":meth:`{mth[0]}`"
                                     continue
-                                elif name in cls.properties:
-                                    entries[k] = f":attr:`{entries[k]}`"
+                                elif prp:
+                                    entries[k] = f":attr:`{prp[0]}`"
                                     continue
 
                         # not yet handled
