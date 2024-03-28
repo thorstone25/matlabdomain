@@ -295,6 +295,8 @@ class MatlabDocumenter(PyDocumenter):
                                     continue
 
                         # not yet handled
+                        # TODO: if method/property not found, recursive search on base classes
+                        logger.debug("[sphinxcontrib-matlabdomain] No matching entity found for %s", entries[k])
                         entries[k] = f"``{entries[k]}``"
 
                     docstrings[i][j] = (
